@@ -1,13 +1,12 @@
 # Initializing cdh node using ansible playbook
----
 
 ## Requirement
-ansible >= 2.3
-jinja2(python-jinja2)
-PyYAML(python-yaml)
-paramiko(python-paramiko)
-pycrypto >= 2.6 (python-crypto)
-setuptools(python-setuptools)  
+ansible >= 2.3  
+jinja2(python-jinja2)  
+PyYAML(python-yaml)  
+paramiko(python-paramiko)  
+pycrypto >= 2.6 (python-crypto)  
+setuptools(python-setuptools)    
 
 ```bash
 # install requirements
@@ -28,8 +27,7 @@ ansible 2.3.2.0
 ```  
 
 ## Tasks
-roles/common/tasks/main.yml
-roles/common/tasks/deploy_hosts_exists.yml
+roles/common/tasks/main.yml  
 
 ## Inventory
 inventory/inventory.cfg
