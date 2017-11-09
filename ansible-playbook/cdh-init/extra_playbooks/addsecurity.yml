@@ -1,0 +1,14 @@
+- name: change passwd
+  hosts: core-cluster
+  become: yes
+  tasks:
+  - name: add user in access file
+    lineinfile:
+      dest: /etc/security/access.conf
+      insertbefore: '-:ALL EXCEPT testuser :LOCAL'
+      line: "{{ item.line }}"
+    with_items:
+      - { line: '+:test1 :10.' }
+      - { line: '+:test1 :170.' }
+      - { line: '+:test2 :10.' }
+      - { line: '+:test2 :170.' }

@@ -1,0 +1,12 @@
+---
+- name: restart ntpd
+  service:
+    name: ntp
+    state: restarted
+
+- name: update apt repo
+  apt:
+    update_cache: yes
+
+- name: update ca-cert
+  command: update-ca-certificates

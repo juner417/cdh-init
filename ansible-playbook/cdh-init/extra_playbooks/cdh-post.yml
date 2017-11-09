@@ -1,0 +1,14 @@
+---
+- name: new host apt update
+  hosts: new
+  become: yes
+  tasks:
+    - name: update apt cache
+      apt:
+        update_cache: yes
+    
+- name: Deploy hosts over exists nodes
+  hosts: all
+  become: yes
+  tasks:
+    - include: roles/common/tasks/deploy_hosts_exists.yml

@@ -1,0 +1,139 @@
+---
+- name: COMMON | add svc group
+  group:
+    name: "{{ item.username }}"
+    gid: "{{ item.id}}"
+    state: present
+  with_items: "{{ users }}"
+
+- name: COMMON | add user
+  user:
+    name: "{{ item.username }}"
+    comment: hadoop service account
+    shell: /bin/bash
+    password: "{{ item.password }}"
+    group: "{{ item.username }}"
+    uid: "{{ item.id }}"
+  with_items: "{{ users }}"
+
+- name: COMMON | add hosts file
+  template: 
+    src: hosts.j2 
+    dest: /etc/hosts
+    backup: yes
+    owner: root
+    group: root
+    mode: 0644
+
+- name: COMMON | create .ssh dir
+  file:
+    path: "/home/{{ ansible_ssh_user }}/.ssh"
+    state: directory
+    mode: "0700"
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+
+- name: COMMON | deploy keys
+  copy:
+    src: '/home/{{ ansible_ssh_user }}/.ssh/{{ item.files }}'
+    dest: '/home/{{ ansible_ssh_user }}/.ssh/{{ item.files }}'
+    owner: "{{ ansible_ssh_user }}"
+    group: "{{ ansible_ssh_user }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - { files: authorized_keys, mode: 644 }
+    - { files: id_rsa, mode: 600 }
+    - { files: config, mode: 644 }
+
+- name: COMMON | modify vm swappiness value 
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.conf
+  with_items: "{{ vm_value }}"
+
+- name: COMMON | install ntpd
+  apt:
+    name: ntp
+  when: need_ntpd == "true"
+
+- name: COMMON | rename ntpd.conf
+  template: 
+    src: ntp.conf.j2
+    dest: /etc/ntp.conf
+    backup: yes
+    owner: root
+    group: root
+    mode: 0644
+  when: need_ntpd == "true"
+  notify: [ 'restart ntpd' ]
+
+- name: COMMON | add admin user in sudoers
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    line: '{{ item }} ALL=(ALL) NOPASSWD:ALL' 
+    validate: 'visudo -cf %s'  
+  with_items: "{{ sudo_users }}"
+
+- name: COMMON | add access account
+  lineinfile:
+    dest: /etc/security/access.conf
+    insertbefore: '-:ALL EXCEPT testuser :LOCAL'
+    line: "{{ item.line }}"
+  with_items:
+    - { line: '+:ubuntu :10.' }
+    - { line: '+:ubuntu :170.' }
+  when: need_access_control == "true" 
+
+- name: COMMON | add proxy in wgetrc
+  lineinfile:
+    dest: /etc/wgetrc
+    state: present
+    line: "http_proxy={{ proxy_infos }}"
+  when: need_proxy == "true"
+
+- name: COMMON | create and add info in 30proxy
+  template:
+    src: 30proxy.j2
+    dest: /etc/apt/apt.conf.d/30proxy
+    backup: yes
+    owner: root
+    group: root
+    mode: 0644
+  when: need_proxy == "true"
+
+- name: COMMON | add source list in file
+  lineinfile:
+    dest: /etc/apt/sources.list
+    state: present
+    backup: yes
+    line: "{{ item.line }}"
+  with_items: "{{ source_list }}"
+  when : need_local_repo == "true"
+  notify: [ 'update apt repo' ]
+
+- name: COMMON | save the proxy crt
+  file:
+    path: /usr/local/share/ca-certificates/proxysg
+    state: directory
+  when: need_proxy == "true"
+
+- name: COMMON | copy a cert
+  copy:
+    src: proxy.crt
+    dest: /usr/local/share/ca-certificates/proxysg/proxy.crt
+    mode: "0644"
+  when: need_proxy == "true"
+
+- name: COMMON | reconfigure proxy cert
+  command: dpkg-reconfigure --frontend=noninteractive ca-certificates
+  when: need_proxy == "true"
+  notify: [ 'update ca-cert' ]
+
+- name: COMMON | copy a cloudera.list
+  copy:
+    src: cloudera.list
+    dest: /etc/apt/sources.list.d/cloudera.list
+    mode: "0644"
+  notify: [ 'update apt repo' ]

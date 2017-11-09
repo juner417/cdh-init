@@ -1,0 +1,38 @@
+---
+# if you have local ntp server, then set true and info
+need_ntpd: false
+ntpd_infos:
+  - "server 10.20.0.1"
+
+# sudo users
+sudo_users:
+  - "ubuntu"
+  - "cloudera-scm"
+
+need_access_control: false
+
+# if you need proxy server for internet
+need_proxy: false
+proxy_infos: "http://proxy.net:8080/"
+
+users:
+  - username: foo
+    password: '$6$33i/FUxx1Q$bmAl6Kk0zeOqt2Vke.ylzPQ7Sd5EQC0fZHKVJ.h6jbakyxzYnfqBkbb7kXcZ9XA0n1FJoK3tT63w8bpnRNdte.'
+    id: 2002
+  - username: bar
+    password: '$6$5eoO1yvqACW$n0OPjrrmNu7fshovBuP/d6UiMR/XKdk.Ocx18x8MqC/CojCNg65hHyS2UA9S2E.nyUNsuALGTPyKAUl/dMpxO/' 
+    id: 2001
+
+vm_value:
+  - name: vm.swappiness
+    value: 1
+  - name: vm.overcommit_memory
+    value: 0
+
+# if you have local ubuntu repository
+need_local_repo: false
+source_list:
+  - line: 'deb http://ftp.daumkakao.com/ubuntu trusty main restricted universe multiverse'
+  - line: 'deb http://ftp.daumkakao.com/ubuntu trusty-updates main restricted universe multiverse'
+  - line: 'deb http://ftp.daumkakao.com/ubuntu trusty-security main restricted universe multiverse'
+  - line: 'deb http://ftp.daumkakao.com/ubuntu trusty-proposed main restricted universe multiverse'

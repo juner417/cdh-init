@@ -1,0 +1,5 @@
+---
+- name: add hosts
+  template: 
+    src: roles/common/templates/hosts.j2
+    dest: /etc/hosts
